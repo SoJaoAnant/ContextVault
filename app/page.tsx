@@ -22,33 +22,18 @@ import { SwitchPaglu } from '@/components/switch_paglu';
 
 export default function Home() {
   return (
-    <main style={mainStyles}>
+    <main className="min-h-screen w-full bg-white">
       <Header />
       <Hero />
-      <div style = {dividerStyles}></div>
+      <div className="w-full h-0.5 bg-[#bebcbc] mx-auto max-w-[1400px]"></div>
       <RAGDiagram />
-      <div style = {dividerStyles}></div>
+      <div className="w-full h-0.5 bg-[#bebcbc] mx-auto max-w-[1400px]"></div>
       <UploadSection />
-      <div style = {dividerStyles}></div>
+      {/* <div className="w-full h-0.5 bg-[#bebcbc] mx-auto max-w-[1400px]"></div> */}
       {/* <Switch /> */}
-      <SwitchPaglu />
+      {/* <SwitchPaglu /> */}
       <Footer />
     </main>
   );
 }
-
-// Styles
-const mainStyles: React.CSSProperties = {
-  minHeight: '100vh',
-  width: '100%',
-  backgroundColor: '#ffffff',
-};
-
-const dividerStyles: React.CSSProperties = {
-  width: '100%',
-  height: '2px',
-  backgroundColor: '#bebcbc',
-  margin: '0 auto',
-  maxWidth: '1400px',
-};
 

@@ -7,36 +7,10 @@ import React from 'react';
 
 export const Footer=()=> {
   return (
-    <footer style={footerStyles}>
-      <div style={footerContainerStyles}>
-        <p style={footerTextStyles}>Made with ♥ by Anant</p>
+    <footer className="w-full p-0 flex justify-center items-center">
+      <div className="w-full py-4 px-8 bg-gray-300 rounded flex justify-center items-center">
+        <p className="text-base font-normal text-gray-600 m-0">Made with ♥ by Anant</p>
       </div>
     </footer>
   );
 }
-
-// Styles
-const footerStyles: React.CSSProperties = {
-  width: '100%',
-  padding: '0rem',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-};
-
-const footerContainerStyles: React.CSSProperties = {
-  width: '100%',
-  padding: '1.0rem 2rem',
-  backgroundColor: '#cacaca',
-  borderRadius: '4px',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-};
-
-const footerTextStyles: React.CSSProperties = {
-  fontSize: '1rem',
-  fontWeight: '400',
-  color: '#595959',
-  margin: '0',
-};

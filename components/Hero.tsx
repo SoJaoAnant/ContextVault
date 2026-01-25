@@ -1,3 +1,4 @@
+import { Bluetooth } from 'lucide-react';
 import React from 'react';
 
 /**
@@ -6,68 +7,32 @@ import React from 'react';
  */
 
 export const Hero = () => {
+
+  const scrollToBottom = () => {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth'
+    });
+  };
+
   return (
-    <section style={heroStyles}>
-      <div style={heroContainerStyles}>
-        <h1 style={titleStyles}>
-          Secure, Semantic, Seamless
+    <section className="w-full py-16 px-8 text-center">
+      <div className="max-w-[1200px] mx-auto mt-20 mb-20 flex flex-col items-center gap-6">
+        <h1 className="text-[4rem] font-bold text-black leading-tight mb-4">
+          Grounded answers, from your data
         </h1>
-        
-        <p style={subtitleStyles}>
-          Upload your documents and query about it with an LLM
+
+        <p className="text-2xl text-gray-600 font-normal mb-4">
+          Upload, Manage and Query your documents Powered by an LLM
         </p>
-        
-        <button style={ctaButtonStyles}>
+
+        <button
+          className='px-9.5 py-5 rounded-xl bg-purple-400 hover:bg-purple-500 transition font-semibold text-2xl'
+          onClick={scrollToBottom}>
           Start Now
         </button>
       </div>
     </section>
   );
 }
-
-// Styles
-const heroStyles: React.CSSProperties = {
-  width: '100%',
-  padding: '4rem 2rem',
-  textAlign: 'center',
-};
-
-const heroContainerStyles: React.CSSProperties = {
-  maxWidth: '1200px',
-  margin: '0 auto',
-  marginTop: '5rem',
-  marginBottom: '5rem',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: '1.5rem',
-};
-
-const titleStyles: React.CSSProperties = {
-  fontSize: '4rem',
-  fontWeight: '700',
-  color: '#000000',
-  lineHeight: '1.2',
-  marginBottom: '1rem',
-};
-
-const subtitleStyles: React.CSSProperties = {
-  fontSize: '1.5rem',
-  color: '#666666',
-  fontWeight: '400',
-  marginBottom: '1rem',
-};
-
-const ctaButtonStyles: React.CSSProperties = {
-  padding: '1rem 2.5rem',
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  border: 'none',
-  borderRadius: '4px',
-  fontSize: '1.125rem',
-  fontWeight: '600',
-  cursor: 'pointer',
-  marginTop: '1rem',
-  transition: 'background-color 0.2s',
-};
 
