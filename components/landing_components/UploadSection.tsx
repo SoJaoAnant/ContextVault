@@ -184,7 +184,7 @@ export const UploadSection = () => {
   };
 
   return (
-    <section className='flex justify-center items-center gap-40 bg-white '>
+    <section className='flex justify-center items-center gap-40'>
 
       {/* Upload Section */}
       <div
@@ -231,11 +231,11 @@ export const UploadSection = () => {
         </div>
 
         {/* Upload Button */} 
-        <div className='mt-15'>
+        <div className='mt-8'>
           <button
             onClick={handleUploadClick}
             disabled={isUploading}
-            className={`w-25 h-9 rounded-2xl bg-purple-400 flex items-center justify-center cursor-pointer hover:bg-purple-500 active:scale-95 transition ${
+            className={`w-25 h-9 rounded-2xl border-2 border-purple-300 bg-purple-400 flex items-center justify-center cursor-pointer hover:border-purple-400 hover:bg-purple-500 active:scale-95 transition ${
               isUploading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >

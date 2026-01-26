@@ -15,8 +15,8 @@ export const RAGDiagram=()=> {
   const diagramTitleWords = ["Working", "of", "a", "RAG", "System"];
 
   return (
-    <section className="w-full py-12 px-8 bg-white mb-10">
-      <div className="max-w-[1400px] mx-auto flex items-center gap-8">
+    <section className="w-full mb-10 mt-10 px-8">
+      <div className="max-w-350 mx-auto flex items-center gap-8">
         <div className="flex-1 flex justify-start items-start">
           <Image 
             src="/rag_diagram.png" 

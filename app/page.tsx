@@ -1,39 +1,34 @@
 'use client'
 
-import {Header} from '@/components/Header';
-import {Hero} from '@/components/Hero';
-import {RAGDiagram} from '@/components/RAGDiagram';
-import {UploadSection} from '@/components/UploadSection';
-import {Footer} from '@/components/Footer';
-// import {Switch} from '@/components/ui/switch';
-import { SwitchPaglu } from '@/components/switch_paglu';
-
-/**
- * Main Landing Page
- * 
- * This is the landing page for ContextVault.
- * It includes:
- * - Header with logo and navigation
- * - Hero section with main title and CTA
- * - RAG System diagram (complex flowchart)
- * - Document upload section
-*/
-
+import { Header } from '@/components/landing_components/Header';
+import { Hero } from '@/components/landing_components/Hero';
+import { RAGDiagram } from '@/components/landing_components/RAGDiagram';
+import { UploadSection } from '@/components/landing_components/UploadSection';
+import { UploadSectionTitle } from '@/components/landing_components/UploadSectionTitle';
+import { Footer } from '@/components/landing_components/Footer';
+import { GotoChat } from '@/components/landing_components/goto_chat';
 
 export default function Home() {
   return (
-    <main className="min-h-screen w-full bg-white">
+    <main className="relative min-h-screen w-full overflow-hidden">
+
+      {/* Dotted Background */}
+      <div className="absolute inset-0 -z-10 h-full w-full bg-white bg-[radial-gradient(#e5e7eb_1.4px,transparent_1px)] bg-size-[16px_16px]" />
+
+      {/* Content */}
       <Header />
       <Hero />
-      <div className="w-full h-0.5 bg-[#bebcbc] mx-auto max-w-[1400px]"></div>
+      <div className="w-full h-0.5 bg-gray-300 mx-auto max-w-350"></div>
       <RAGDiagram />
-      <div className="w-full h-0.5 bg-[#bebcbc] mx-auto max-w-[1400px]"></div>
+      <div className="w-full h-0.5 bg-gray-300 mx-auto max-w-350"></div>
+      <UploadSectionTitle />
+      <div className="w-full h-0.5 bg-gray-300 mx-auto max-w-350"></div>
       <UploadSection />
-      {/* <div className="w-full h-0.5 bg-[#bebcbc] mx-auto max-w-[1400px]"></div> */}
-      {/* <Switch /> */}
-      {/* <SwitchPaglu /> */}
+      <GotoChat />
       <Footer />
+
     </main>
   );
 }
+
 

@@ -15,7 +15,8 @@ import Link from 'next/link';
 
 export const Header = () => {
   return (
-    <header className="w-full py-6 px-8 border-b border-gray-400">
+    <header className="w-full py-6 px-8 border-b bg-gray-50 border-gray-400 ">
+
       <div className="max-w-350 mx-auto flex justify-between items-center">
         <Link href="/" className="flex items-center gap-3 cursor-pointer">
           <Image
@@ -34,12 +35,12 @@ export const Header = () => {
         <nav className="flex items-center gap-8">
           <Link
             href="/chat"
-            className="px-6 py-2 bg-white hover:bg-purple-400 transition text-black rounded font-semibold text-xl cursor-pointer">
+            className="px-6 py-2 border-2 border-gray-200 bg-gray-100 hover:bg-purple-400 transition text-black rounded font-semibold text-xl cursor-pointer">
             Chat
           </Link>
           <Link
             href="/documents"
-            className="px-6 py-2 bg-white hover:bg-purple-400 transition text-black rounded font-semibold text-xl cursor-pointer">
+            className="px-6 py-2 border-2 border-gray-200 bg-gray-100 hover:bg-purple-400 transition text-black rounded font-semibold text-xl cursor-pointer">
             Documents
           </Link>
         </nav>
