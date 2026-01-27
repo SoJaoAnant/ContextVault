@@ -10,7 +10,7 @@ import { GotoChat } from '@/components/landing_components/goto_chat';
 
 export default function Home() {
   return (
-    <main className="relative min-h-screen w-full overflow-hidden">
+    <main className="relative min-h-screen w-full overflow-y-auto no-scrollbar">
 
       {/* Dotted Background */}
       <div className="absolute inset-0 -z-10 h-full w-full bg-white bg-[radial-gradient(#e5e7eb_1.4px,transparent_1px)] bg-size-[16px_16px]" />
@@ -19,12 +19,12 @@ export default function Home() {
       <Header />
       <Hero />
       <div className="w-full h-0.5 bg-gray-300 mx-auto max-w-350"></div>
-      <RAGDiagram />
-      <div className="w-full h-0.5 bg-gray-300 mx-auto max-w-350"></div>
       <UploadSectionTitle />
       <div className="w-full h-0.5 bg-gray-300 mx-auto max-w-350"></div>
       <UploadSection />
       <GotoChat />
+      <div className="w-full h-0.5 bg-gray-300 mx-auto max-w-350"></div>
+      <RAGDiagram />
       <Footer />
 
     </main>

@@ -115,23 +115,47 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-@layer utilities {
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
+/* Target the Conversation Area specifically */
+.chat-scroll-container::-webkit-scrollbar {
+  width: 6px;
+  /* Width of the vertical scrollbar */
+}
 
-  /* Hide scrollbar for IE, Edge and Firefox */
-  .no-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-  }
+.chat-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+  /* Makes the track invisible */
+  margin-block: 8px;
+  /* Adds space at the top/bottom (Positioning) */
+}
+
+.chat-scroll-container::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  /* Gray-300 - matches your divider */
+  border-radius: 20px;
+  /* Makes it round */
+}
+
+.chat-scroll-container::-webkit-scrollbar-thumb:hover {
+  background-color: #9ca3af;
+  /* Gray-400 - gets darker on hover */
+}
+
+/* Target the root elements to hide the main scrollbar */
+html, body {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+html::-webkit-scrollbar, 
+body::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, and Opera */
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }

@@ -10,7 +10,9 @@ export default function DocumentsPage() {
       <div className="absolute inset-0 -z-10 h-full w-full bg-white bg-[radial-gradient(#e5e7eb_1.4px,transparent_1px)] bg-size-[16px_16px]" />
 
       {/* Content */}
-      <Header />
+      <Header 
+        // padding={"pl-3"}
+      />
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-black mb-4">Documents</h1>

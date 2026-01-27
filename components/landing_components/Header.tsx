@@ -13,11 +13,15 @@ import Link from 'next/link';
  * TODO: Add proper navigation links and routing
  */
 
-export const Header = () => {
+type headerProps = {
+  padding?: "string";
+}
+
+export const Header = ({padding} : headerProps) => {
   return (
     <header className="w-full py-6 px-8 border-b bg-gray-50 border-gray-400 ">
 
-      <div className="max-w-350 mx-auto flex justify-between items-center">
+      <div className={`${padding} max-w-350 mx-auto flex justify-between items-center`}>
         <Link href="/" className="flex items-center gap-3 cursor-pointer">
           <Image
             src="/logo.png"

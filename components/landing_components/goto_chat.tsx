@@ -15,7 +15,7 @@ export const GotoChat = () => {
                     Start Chatting!
                 </h3>
                 <Link href="/chat">
-                    <button className="group cursor-pointer bg-purple-400 rounded-full w-30 h-30 flex justify-center items-center border-2 border-purple-500 hover:bg-purple-500 hover:border-purple-400 transition">
+                    <button className="group cursor-pointer bg-purple-400 p-5 rounded-full w-30 h-30 flex justify-center items-center border-2 border-purple-500 hover:bg-purple-500 hover:border-purple-400 transition">
 
                         {/* Default image */}
                         <Image
