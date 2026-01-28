@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useLayoutEffect, FormEvent } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 type Message = {
   id: number;
@@ -31,7 +32,7 @@ export const ChatUI = () => {
     }
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const trimmed = input.trim();
     if (!trimmed) return;
@@ -41,19 +42,32 @@ export const ChatUI = () => {
       role: 'user',
       content: trimmed,
     };
-
-    // Fake assistant response for now – echoes user message
-    const assistantMessage: Message = {
-      id: Date.now() + 1,
-      role: 'assistant',
-      content: trimmed,
-    };
-
-    // Add user message
-    // setMessages((prev) => [...prev, userMessage]);
-    setMessages((prev) => [...prev, userMessage, assistantMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput('');
 
+    try {
+      const Response = await fetch("http://127.0.0.1:8000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: trimmed }),
+      });
+
+      const data = await Response.json()
+
+      // Fake assistant response for now – echoes user message
+      const assistantMessage: Message = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: data.Response,
+      };
+
+      // Add user message
+      setMessages((prev) => [...prev, assistantMessage]);
+      // setInput('');
+
+    } catch (error) {
+      console.error("Failed to connect to ContextVault backend : ", error);
+    }
   };
 
   // Auto-scroll to bottom when messages change
@@ -91,13 +105,18 @@ export const ChatUI = () => {
             >
               <div
                 className={`
-          px-3 py-2 rounded-2xl text-sm wrap-break-word
-          ${msg.role === 'user'
+                py-2 px-3 text-sm wrap-break-word rounded-2xl
+                ${msg.role === 'user'
                     ? 'bg-purple-500 text-white rounded-br-sm max-w-[80%]'
-                    : 'text-gray-900 w-full'}
-        `}
-              >
-                {msg.content}
+                    : 'text-gray-900 w-full prose prose-sm max-w-none'}
+                `}
+              >{msg.role === 'user' ? (
+                msg.content
+              ) : (
+                <ReactMarkdown>
+                  {msg.content}
+                </ReactMarkdown>
+              )}
               </div>
             </div>
           ))}
