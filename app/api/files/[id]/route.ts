@@ -21,7 +21,6 @@ export async function DELETE(
       );
     }
 
-
     // Check if metadata file exists
     if (!existsSync(METADATA_FILE)) {
       return NextResponse.json(

@@ -7,6 +7,7 @@ import { UploadSection } from '@/components/landing_components/UploadSection';
 import { UploadSectionTitle } from '@/components/landing_components/UploadSectionTitle';
 import { Footer } from '@/components/landing_components/Footer';
 import { GotoChat } from '@/components/landing_components/goto_chat';
+import { UserForm } from '@/components/landing_components/user_form';
 
 export default function Home() {
   return (
@@ -25,6 +26,8 @@ export default function Home() {
       <GotoChat />
       <div className="w-full h-0.5 bg-gray-300 mx-auto max-w-350"></div>
       <RAGDiagram />
+      <div className="w-full h-0.5 bg-gray-300 mx-auto max-w-350"></div>
+      <UserForm />
       <Footer />
 
     </main>

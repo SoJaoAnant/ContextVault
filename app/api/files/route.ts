@@ -20,9 +20,10 @@ export async function GET() {
     const filesList = files.map((file: any) => ({
       id: file.id,
       name: file.originalName,
-      type: file.type,
+      type: file.type.toLowerCase(),
       size: file.size,
       uploadedAt: file.uploadedAt,
+      path: `/api/files/${file.id}/content`,
     }));
 
     return NextResponse.json({ files: filesList });
