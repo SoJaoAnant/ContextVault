@@ -1,148 +1,139 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import Image from 'next/image';
-
-interface UploadedFile {
-  id: string;
-  name: string;
-  type: string;
-  size: number;
-  uploadedAt: string;
-}
+import {
+  useFileContext,
+  ALLOWED_EXTENSIONS,
+  MAX_SIZE_BYTES,
+  MAX_FILES,
+  type SessionFile,
+  type SupportedFileType,
+} from '@/contexts/FileContext';
 
 export const UploadSection = () => {
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const { files, addFiles, removeFile } = useFileContext();
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const allowedTypes = ['.pdf', '.md', '.txt', '.csv'];
-  const maxSize = 20 * 1024 * 1024; // 20MB in bytes
-
-  // Format file size to readable format
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
   };
 
-  // Get file type from extension
   const getFileType = (fileName: string): string => {
     const extension = fileName.split('.').pop()?.toUpperCase() || 'UNKNOWN';
     return extension;
   };
 
-  // Validate file
-  const validateFile = (file: File): boolean => {
+  const validateFile = (file: File): { valid: boolean; error?: string } => {
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-    
-    if (!allowedTypes.includes(fileExtension)) {
-      alert(`File type not supported. Supported formats: ${allowedTypes.join(', ')}`);
-      return false;
+
+    if (!ALLOWED_EXTENSIONS.includes(fileExtension)) {
+      return {
+        valid: false,
+        error: `"${file.name}" has an unsupported format. Supported: ${ALLOWED_EXTENSIONS.join(', ')}`,
+      };
     }
 
-    if (file.size > maxSize) {
-      alert(`File size exceeds 20MB limit. Your file is ${formatFileSize(file.size)}`);
-      return false;
+    if (file.size > MAX_SIZE_BYTES) {
+      return {
+        valid: false,
+        error: `"${file.name}" exceeds 20MB limit. Your file is ${formatFileSize(file.size)}`,
+      };
     }
 
-    return true;
+    return { valid: true };
   };
 
-  // Fetch uploaded files from server
-  const fetchUploadedFiles = async () => {
-    try {
-      const response = await fetch('/api/files');
-      const data = await response.json();
-      if (data.files) {
-        setUploadedFiles(data.files);
-      }
-    } catch (error) {
-      console.error('Error fetching files:', error);
-    }
+  const fileToSessionFile = async (file: File): Promise<SessionFile> => {
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    const type = ext as SupportedFileType;
+    const id = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+    return {
+      id,
+      name: file.name,
+      type,
+      size: file.size,
+      uploadedAt: new Date().toISOString(),
+      blob: file,
+    };
   };
 
-  // Load files on component mount
-  useEffect(() => {
-    fetchUploadedFiles();
-  }, []);
+  const handleFiles = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
 
-  // Upload files to server
-  const uploadFilesToServer = async (files: File[]) => {
-    setIsUploading(true);
-    try {
-      const formData = new FormData();
-      files.forEach((file) => {
-        formData.append('files', file);
-      });
+    setUploadError(null);
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Refresh the file list after successful upload
-        await fetchUploadedFiles();
-        alert(`Successfully uploaded ${data.files?.length || files.length} file(s)`);
-      } else {
-        alert(`Upload failed: ${data.error || 'Unknown error'}`);
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-      alert('Failed to upload files. Please try again.');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  // Delete file from server
-  const handleDeleteFile = async (fileId: string, fileName: string) => {
-    if (!confirm(`Are you sure you want to delete "${fileName}"?`)) {
+    if (files.length >= MAX_FILES) {
+      setUploadError(`Maximum ${MAX_FILES} files allowed. Remove some files before adding more.`);
       return;
     }
 
-    try {
-      const response = await fetch(`/api/files/${fileId}`, {
-        method: 'DELETE',
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Refresh the file list after successful deletion
-        await fetchUploadedFiles();
-      } else {
-        alert(`Delete failed: ${data.error || 'Unknown error'}`);
-      }
-    } catch (error) {
-      console.error('Delete error:', error);
-      alert('Failed to delete file. Please try again.');
-    }
-  };
-
-  // Handle file selection
-  const handleFiles = async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
-
     const validFiles: File[] = [];
-    
-    Array.from(files).forEach((file) => {
-      if (validateFile(file)) {
+    const errors: string[] = [];
+
+    Array.from(fileList).forEach((file) => {
+      const { valid, error } = validateFile(file);
+      if (valid) {
         validFiles.push(file);
+      } else if (error) {
+        errors.push(error);
       }
     });
 
-    if (validFiles.length > 0) {
-      // Upload files to server
-      await uploadFilesToServer(validFiles);
+    const slotsRemaining = MAX_FILES - files.length;
+    if (validFiles.length > slotsRemaining) {
+      errors.push(
+        `Only ${slotsRemaining} slot(s) remaining. Maximum ${MAX_FILES} files allowed.`
+      );
+    }
+
+    if (errors.length > 0) {
+      setUploadError(errors.join('\n'));
+    }
+
+    const filesToAdd = validFiles.slice(0, slotsRemaining);
+    if (filesToAdd.length > 0) {
+      setIsUploading(true);
+      try {
+        const sessionFiles = await Promise.all(filesToAdd.map(fileToSessionFile));
+
+        const formData = new FormData();
+        filesToAdd.forEach((file) => {
+          formData.append('files', file); // 'files' must match the Python parameter name
+        });
+
+        const response = await fetch("http://127.0.0.1:8000/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) throw new Error('Backend upload failed');
+        const result = await response.json();
+        console.log("Vault updated:", result);
+
+        addFiles(sessionFiles);
+        setUploadError(null);
+      } catch (err) {
+        console.error('Upload error:', err);
+        setUploadError('Failed to process files. Please try again.');
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
-  // Drag and drop handlers
+  const handleDeleteFile = (fileId: string, fileName: string) => {
+    if (!confirm(`Are you sure you want to remove "${fileName}"?`)) return;
+    removeFile(fileId);
+    setUploadError(null);
+  };
+
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -164,39 +155,31 @@ export const UploadSection = () => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-
-    const files = e.dataTransfer.files;
-    handleFiles(files);
+    handleFiles(e.dataTransfer.files);
   };
 
-  // Handle file input change
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFiles(e.target.files);
-    // Reset input so same file can be selected again
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
-  // Handle upload button click
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
 
   return (
-    <section className='flex justify-center items-center gap-40'>
-
+    <section className="flex justify-center items-center gap-40">
       {/* Upload Section */}
       <div
-        className={`flex flex-col bg-gray-200 my-10 w-100 h-120 justify-center items-center rounded-2xl border-4 border-dashed ${
-          isDragging ? 'border-purple-600 bg-purple-50' : 'border-purple-400'
-        } transition-colors`}
+        className={`flex flex-col bg-gray-200 my-10 w-100 h-120 justify-center items-center rounded-2xl border-4 border-dashed ${isDragging ? 'border-purple-600 bg-purple-50' : 'border-purple-400'
+          } transition-colors`}
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {/* Hidden file input */}
         <input
           ref={fileInputRef}
           type="file"
@@ -206,8 +189,7 @@ export const UploadSection = () => {
           className="hidden"
         />
 
-        {/* Upload Logo */}
-        <div className='flex justify-center items-center w-15 h-15'>
+        <div className="flex justify-center items-center w-15 h-15">
           <Image
             src="/upload_logo.png"
             alt="upload_logo"
@@ -217,59 +199,57 @@ export const UploadSection = () => {
           />
         </div>
 
-        {/* Upload Text and Logo*/}
-        <div className='text-center text-gray-700 '>
-          <p className='text-lg font-medium'>
-            Drag or Select documents to upload
-          </p>
-          <p className='text-m text-gray-500'>
-            Supported formats: (.pdf, .md, .txt, .csv)
-          </p>
-          <p className='text-m text-gray-500'>
-            Max size : 20mb
-          </p>
+        <div className="text-center my-10 text-gray-700">
+          <p className="text-lg font-medium">Drag or Select documents to upload</p>
+          <p className="text-xs text-gray-500">Supported formats: (.pdf, .md, .txt, .csv)</p>
+          <p className="text-xs text-gray-500">Max size: 20MB · Max {MAX_FILES} files</p>
         </div>
 
-        {/* Upload Button */} 
-        <div className='mt-8'>
-          <button
-            onClick={handleUploadClick}
-            disabled={isUploading}
-            className={`w-25 h-9 rounded-2xl border-2 border-purple-300 bg-purple-400 flex items-center justify-center cursor-pointer hover:border-purple-400 hover:bg-purple-500 active:scale-95 transition ${
-              isUploading ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            <p className='text-black font-normal'>{isUploading ? 'Uploading...' : 'Upload'}</p>
-            <Image className='w-5 h-5 ml-1 object-contain'
-              src="/upload_logo_2.png"
-              alt="upload_logo"
-              width={100}
-              height={100}
-            />
-          </button>
-        </div>
-
+        {uploadError && (
+          <div className="mt-3 px-4 py-2 max-w-md rounded-lg bg-red-100 text-red-700 text-sm whitespace-pre-line">
+            {uploadError}
+          </div>
+        )}<button
+          onClick={handleUploadClick}
+          disabled={isUploading || files.length >= MAX_FILES}
+          className={`
+            min-w-fit px-4 py-2 
+            rounded-2xl border-2 border-purple-300 bg-purple-400 
+            flex items-center justify-center cursor-pointer 
+            hover:border-purple-400 hover:bg-purple-500 
+            active:scale-95 transition 
+            ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}
+          `}
+        >
+          <p className="text-black font-normal whitespace-nowrap">
+            {files.length >= MAX_FILES ? 'Limit reached' : isUploading ? 'Adding...' : 'Upload'}
+          </p>
+          <Image
+            className="w-5 h-5 ml-1 object-contain shrink-0"
+            src="/upload_logo_2.png"
+            alt="upload_logo"
+            width={100}
+            height={100}
+          />
+        </button>
       </div>
 
       {/* Uploaded Documents Section */}
-      <div className='flex flex-col bg-gray-200 my-10 w-100 h-120 items-center justify-start rounded-2xl border-4 border-dashed border-purple-400 p-7 overflow-y-auto'>
-
-        {/* Text Heading */}
-        <p className='text-xl font-semibold tracking-wide text-gray-800 mb-4'>
-          Documents Uploaded : {uploadedFiles.length > 0 && `(${uploadedFiles.length})`}
+      <div className="flex flex-col bg-gray-200 my-10 w-100 h-120 items-center justify-start rounded-2xl border-4 border-dashed border-purple-400 p-7 overflow-y-auto">
+        <p className="text-xl font-semibold tracking-wide text-gray-800 mb-4">
+          Documents Uploaded : {files.length > 0 && `(${files.length})`}
         </p>
 
         <div className="w-full h-px bg-gray-500 mb-12" />
 
-        {/* Files display */}
-        {uploadedFiles.length === 0 ? (
-          <p className='text-gray-500 text-sm'>No documents uploaded yet</p>
+        {files.length === 0 ? (
+          <p className="text-gray-500 text-sm">No documents uploaded yet (session-only)</p>
         ) : (
-          <div className='w-full space-y-3'>
-            {uploadedFiles.map((uploadedFile) => (
+          <div className="w-full space-y-3">
+            {files.map((uploadedFile) => (
               <div
                 key={uploadedFile.id}
-                className='flex items-center w-full h-13 rounded border-2 border-gray-500 bg-gray-100 hover:bg-gray-300 transition'
+                className="flex items-center w-full h-13 rounded border-2 border-gray-500 bg-gray-100 hover:bg-gray-300 transition"
               >
                 <Image
                   src="/file_icon.png"
@@ -279,12 +259,12 @@ export const UploadSection = () => {
                   className="mx-3 shrink-0 opacity-80"
                 />
 
-                <div className='my-1 flex-1 min-w-0'>
-                  <p className='text-sm font-semibold text-gray-800 leading-tight truncate'>
+                <div className="my-1 flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-800 leading-tight truncate">
                     {uploadedFile.name}
                   </p>
-                  <p className='text-xs text-gray-500'>
-                    {uploadedFile.type} | {formatFileSize(uploadedFile.size)}
+                  <p className="text-xs text-gray-500">
+                    {getFileType(uploadedFile.name)} | {formatFileSize(uploadedFile.size)}
                   </p>
                 </div>
 
@@ -293,17 +273,16 @@ export const UploadSection = () => {
                     e.stopPropagation();
                     handleDeleteFile(uploadedFile.id, uploadedFile.name);
                   }}
-                  className='ml-3 mr-3 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded transition-colors active:scale-95'
-                  title="Delete file"
+                  className="ml-3 mr-3 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded transition-colors active:scale-95"
+                  title="Remove file"
                 >
-                  Delete
+                  Remove
                 </button>
               </div>
             ))}
           </div>
         )}
-
       </div>
     </section>
   );
-}
+};

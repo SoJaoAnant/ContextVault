@@ -1,99 +1,71 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-
-type SupportedDocType = 'pdf' | 'md' | 'txt';
+import { useFileContext, type SessionFile, type SupportedFileType } from '@/contexts/FileContext';
 
 type DocumentMeta = {
   id: string;
   name: string;
-  path: string; // relative path to the file, e.g. /uploads/foo.pdf
-  type: SupportedDocType;
+  type: SupportedFileType;
+  blob: Blob;
 };
 
 export const DocumentPrev = () => {
-  const [documents, setDocuments] = useState<DocumentMeta[]>([]);
+  const { files } = useFileContext();
   const [selectedDoc, setSelectedDoc] = useState<DocumentMeta | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [textContent, setTextContent] = useState<string>('');
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
 
-  // Fetch the list of documents from a JSON endpoint
-  // You can back this with data/files.json on the server side.
+  const documents = useMemo(
+    () =>
+      files.map((f) => ({
+        id: f.id,
+        name: f.name,
+        type: f.type,
+        blob: f.blob,
+      })),
+    [files]
+  );
+
   useEffect(() => {
-    const fetchDocs = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    if (documents.length > 0 && !selectedDoc) {
+      setSelectedDoc(documents[0]);
+    } else if (documents.length === 0) {
+      setSelectedDoc(null);
+    } else if (selectedDoc && !documents.find((d) => d.id === selectedDoc.id)) {
+      setSelectedDoc(documents[0]);
+    }
+  }, [documents, selectedDoc]);
 
-        const res = await fetch('/api/files'); // TODO: implement this API to read data/files.json
-        if (!res.ok) {
-          throw new Error(`Failed to load documents: ${res.status}`);
-        }
-
-        const data = await res.json();
-
-        const filesList: DocumentMeta[] = (data.files || []).map((file: any) => ({
-          id: file.id,
-          name: file.name,
-          path: file.path, // This will be "/api/files/{id}/content"
-          type: file.type.toLowerCase() as SupportedDocType, // Ensure lowercase
-        }));
-
-        setDocuments(filesList);
-
-        if (filesList.length > 0 && !selectedDoc) {
-          setSelectedDoc(filesList[0]);
-        }
-
-      } catch (err) {
-        console.error(err);
-        setError('Unable to load your documents.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDocs();
+  const loadTextContent = useCallback(async (blob: Blob) => {
+    const text = await blob.text();
+    setTextContent(text);
   }, []);
 
-  // Load text content for md/txt when selection changes
   useEffect(() => {
-    const loadContent = async () => {
-      if (!selectedDoc) {
-        setTextContent('');
-        return;
-      }
+    if (!selectedDoc) {
+      setTextContent('');
+      setObjectUrl(null);
+      return;
+    }
 
-      if (selectedDoc.type === 'md' || selectedDoc.type === 'txt') {
-        try {
-          setLoading(true);
-          setError(null);
+    if (selectedDoc.type === 'pdf') {
+      setTextContent('');
+      const url = URL.createObjectURL(selectedDoc.blob);
+      setObjectUrl(url);
+      return () => {
+        URL.revokeObjectURL(url);
+        setObjectUrl(null);
+      };
+    }
 
-          const res = await fetch(selectedDoc.path);
-          if (!res.ok) {
-            throw new Error(`Failed to load document: ${res.status}`);
-          }
-
-          const text = await res.text();
-          setTextContent(text);
-        } catch (err) {
-          console.error(err);
-          setError('Unable to load this document.');
-          setTextContent('');
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        // PDFs are rendered via <iframe>, no need to fetch text
-        setTextContent('');
-      }
-    };
-
-    loadContent();
-  }, [selectedDoc]);
+    if (['md', 'txt', 'csv'].includes(selectedDoc.type)) {
+      loadTextContent(selectedDoc.blob);
+      setObjectUrl(null);
+    }
+  }, [selectedDoc, loadTextContent]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev);
@@ -101,7 +73,6 @@ export const DocumentPrev = () => {
 
   const handleSelectDoc = (doc: DocumentMeta) => {
     setSelectedDoc(doc);
-    // Keep sidebar open on large screens, close on small (optional)
   };
 
   return (
@@ -134,9 +105,7 @@ export const DocumentPrev = () => {
               border-gray-400
             "
           >
-            <span>
-              {isSidebarOpen ? '<' : '>'}
-            </span>
+            <span>{isSidebarOpen ? '<' : '>'}</span>
           </button>
         </div>
 
@@ -156,19 +125,9 @@ export const DocumentPrev = () => {
               </h2>
             </div>
             <div className="flex-1 overflow-y-auto">
-              {loading && documents.length === 0 && (
-                <div className="p-4 text-xs text-gray-500">Loading documents...</div>
-              )}
-
-              {error && (
-                <div className="p-4 text-xs text-red-500">
-                  {error}
-                </div>
-              )}
-
-              {!loading && !error && documents.length === 0 && (
+              {documents.length === 0 && (
                 <div className="p-4 text-xs text-gray-400">
-                  No documents found in your uploads.
+                  No documents in this session. Upload files on the home page.
                 </div>
               )}
 
@@ -185,9 +144,7 @@ export const DocumentPrev = () => {
                       `}
                     >
                       <span className="truncate">{doc.name}</span>
-                      <span className="ml-2 text-[11px] uppercase text-gray-500">
-                        {doc.type}
-                      </span>
+                      <span className="ml-2 text-[11px] uppercase text-gray-500">{doc.type}</span>
                     </button>
                   </li>
                 ))}
@@ -197,36 +154,24 @@ export const DocumentPrev = () => {
         </aside>
 
         {/* Main preview pane */}
-        <main className="flex-1 h-full bg-white relative ">
-          {!selectedDoc && !loading && (
+        <main className="flex-1 h-full bg-white relative">
+          {!selectedDoc && (
             <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-              Select a document from the list to preview it here.
+              Select a document from the list or upload files on the home page.
             </div>
           )}
 
-          {loading && (
-            <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
-              Loading document...
-            </div>
-          )}
-
-          {error && selectedDoc && !loading && (
-            <div className="w-full h-full flex items-center justify-center text-red-500 text-sm px-4 text-center">
-              {error}
-            </div>
-          )}
-
-          {!loading && selectedDoc && !error && (
+          {selectedDoc && (
             <div className="w-full h-full">
-              {selectedDoc.type === 'pdf' && (
+              {selectedDoc.type === 'pdf' && objectUrl && (
                 <iframe
-                  src={selectedDoc.path}
+                  src={objectUrl}
                   className="w-full h-full border-0 rounded-b-2xl"
                   title={selectedDoc.name}
                 />
               )}
 
-              {(selectedDoc.type === 'md' || selectedDoc.type === 'txt') && (
+              {['md', 'txt', 'csv'].includes(selectedDoc.type) && (
                 <div className="w-full h-full overflow-y-auto px-8 pb-6">
                   {selectedDoc.type === 'md' ? (
                     <article className="prose prose-sm max-w-none pt-4">

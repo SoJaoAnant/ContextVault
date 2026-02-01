@@ -17,7 +17,7 @@ type headerProps = {
   padding?: "string";
 }
 
-export const Header = ({padding} : headerProps) => {
+export const Header = ({ padding }: headerProps) => {
   return (
     <header className="w-full py-6 px-8 border-b bg-gray-50 border-gray-400 ">
 
@@ -26,10 +26,11 @@ export const Header = ({padding} : headerProps) => {
           <Image
             src="/logo.png"
             alt="ContextVault"
-            width={100}
-            height={100}
-            className="object-contain"
+            width={120}
+            height={40}
+            className="object-contain w-auto h-auto"
           />
+
           <span className="text-3xl font-bold tracking-tight">
             <span className="text-black">Context</span>
             <span className="text-purple-500">Vault</span>
