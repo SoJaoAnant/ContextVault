@@ -1,8 +1,9 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_ollama import ChatOllama, OllamaEmbeddings
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from langchain_core.prompts import ChatPromptTemplate
 from fastapi.responses import StreamingResponse
-from fastapi import FastAPI, UploadFile, File
 from langchain_core.documents import Document
 from langchain_chroma import Chroma
 from pydantic import BaseModel
@@ -40,27 +41,73 @@ vector_db = Chroma(
     persist_directory="./chroma_db"
 )
 
+print(f"⚙ DEBUG: Vector Database initialized")
+
+RAG_prompt_template = """
+Answer the question based ONLY on the following context:
+{context}
+
+Question: {question}
+"""
+
 async def process_file(file: UploadFile):
-    content = await file.read()
-    text = ""
+    try:
+        content = await file.read()
+        text = ""
 
-    if file.filename.endswith('.pdf'):
-        pdf_reader = PyPDF2.PdfReader(io.BytesIO(content))
-        for page in pdf_reader.pages:
-            text += page.extract_text()
-    else:
-        text = content.decode("utf-8")
+        if not content:
+            raise ValueError("Uploaded file is empty")
 
-    doc = Document(page_content=text, metadata={"source": file.filename})
-    
-    chunks = text_splitter.split_documents([doc])
-    
-    vector_db.add_documents(chunks)
+        if file.filename.lower().endswith(".pdf"):
+            try:
+                pdf_reader = PyPDF2.PdfReader(io.BytesIO(content))
+                for page in pdf_reader.pages:
+                    text += page.extract_text() or ""
+            except Exception as pdf_err:
+                raise RuntimeError("Failed to read PDF file") from pdf_err
+
+        else:
+            try:
+                text = content.decode("utf-8")
+            except UnicodeDecodeError:
+                raise ValueError("File is not valid UTF-8 text")
+
+        if not text.strip():
+            raise ValueError("No extractable text found in file")
+
+        doc = Document(
+            page_content=text,
+            metadata={"source": file.filename}
+        )
+
+        chunks = text_splitter.split_documents([doc])
+
+        if not chunks:
+            raise RuntimeError("Document chunking failed")
+
+        vector_db.add_documents(chunks)
+
+        return {"status": "success", "chunks_added": len(chunks)}
+
+    except Exception as e:
+        print(f"[ERROR] File processing failed: {e}")
+
+        raise HTTPException(
+            status_code=400,
+            detail=f"File processing failed: {str(e)}"
+        )
 
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest) -> StreamingResponse:
+    
+    docs = vector_db.similarity_search(request.message, k=3)
+    
+    context_text = "\n\n---\n\n".join([doc.page_content for doc in docs])
+    
+    prompt = RAG_prompt_template.format(context=context_text, question=request.message)
+    
     def token_generator():
-        for chunk in llm.stream(request.message):
+        for chunk in llm.stream(prompt):
             content = getattr(chunk, "content", None)
             if not content:
                 continue
@@ -84,13 +131,10 @@ async def upload_documents(files: List[UploadFile] = File(...)):
             "filename": file.filename,
             "status": "Verified in Backend"
         })
+        print(f"⚙ DEBUG: DB has {vector_db._collection.count()} embeddings")
     
     #################################################
     ##########  LANGCHAIN IMPLEMENTATION  ###########
     #################################################  
-    
-          
         
     return {"message": "Files received", "details": uploaded_details}
-
-print("The end is never the end")

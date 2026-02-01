@@ -26,10 +26,6 @@ __pycache__/
 # testing
 /coverage
 
-# next.js
-/.next/
-/out/
-
 # production
 /build
 
@@ -56,3 +52,17 @@ next-env.d.ts
 # uploaded files
 /uploads
 /data/files.json
+
+# Extras
+chroma_db/
+/chroma_db
+data/
+*.pyo
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.vscode/
+
+# next.js
+/.next/
+/out/
