@@ -1,7 +1,9 @@
 'use client';
 
+import { Circle } from 'lucide-react';
 import React, { useState, useRef, useEffect, useLayoutEffect, FormEvent } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { LoaderCircle } from 'lucide-react';
 
 type Message = {
   id: number;
@@ -9,13 +11,31 @@ type Message = {
   content: string;
 };
 
+type ChatMode = 'ask_bot' | 'ask_document';
+
 export const ChatUI = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
+  const [chatMode, setChatMode] = useState<ChatMode>('ask_document');
+  const [showModeDropdown, setShowModeDropdown] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const [isThinking, setIsThinking] = useState(false);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowModeDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useLayoutEffect(() => {
     if (textareaRef.current) {
@@ -68,12 +88,18 @@ export const ChatUI = () => {
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
     setInput("");
 
+    // Determine endpoint based on chat mode
+    const endpoint = chatMode === 'ask_bot'
+      ? "http://127.0.0.1:8000/chat_nodoc"
+      : "http://127.0.0.1:8000/chat";
+
     try {
       const controller = new AbortController();
       abortControllerRef.current = controller;
       setIsStreaming(true);
+      setIsThinking(true);
 
-      const response = await fetch("http://127.0.0.1:8000/chat", {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: trimmed }),
@@ -98,6 +124,9 @@ export const ChatUI = () => {
       while (!done) {
         const { value, done: streamDone } = await reader.read();
         done = streamDone;
+
+        if (isThinking) setIsThinking(false);
+
         if (!value) continue;
 
         const chunkText = decoder.decode(value, { stream: !done });
@@ -152,6 +181,7 @@ export const ChatUI = () => {
       }
     } finally {
       setIsStreaming(false);
+      setIsThinking(false);
       abortControllerRef.current = null;
     }
   };
@@ -162,6 +192,10 @@ export const ChatUI = () => {
     }
   };
 
+  const handleModeChange = (mode: ChatMode) => {
+    setChatMode(mode);
+    setShowModeDropdown(false);
+  };
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -169,6 +203,16 @@ export const ChatUI = () => {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+
+  const getModeLabel = (mode: ChatMode) => {
+    return mode === 'ask_bot' ? '🤖 Chat with Xeno' : '📄 Ask from Document';
+  };
+
+  const getModeDescription = (mode: ChatMode) => {
+    return mode === 'ask_bot'
+      ? 'General conversation without document context'
+      : 'Query with document context from your uploads';
+  };
 
   return (
     <div className="w-full h-full py-4 pl-4 pr-2">
@@ -183,39 +227,152 @@ export const ChatUI = () => {
           flex flex-col
         "
       >
+        {/* Mode Selector Header */}
+        <div className="border-b border-gray-200 px-4 py-3">
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowModeDropdown(!showModeDropdown)}
+              disabled={isStreaming}
+              className="
+                flex items-center gap-2 px-4 py-2 
+                bg-gray-50 hover:bg-gray-100
+                border border-gray-300 rounded-lg
+                text-sm font-medium text-gray-700
+                transition-colors
+                disabled:opacity-50 disabled:cursor-not-allowed
+              "
+            >
+              <span>{getModeLabel(chatMode)}</span>
+              <svg
+                className={`w-4 h-4 transition-transform ${showModeDropdown ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {/* Dropdown Menu */}
+            {showModeDropdown && (
+              <div className="
+                absolute top-full left-0 mt-2 
+                w-72 bg-white border border-gray-200 
+                rounded-lg shadow-lg z-10
+              ">
+                <div className="p-2">
+                  <button
+                    onClick={() => handleModeChange('ask_bot')}
+                    className={`
+                      w-full text-left px-3 py-2 rounded-md
+                      transition-colors
+                      ${chatMode === 'ask_bot'
+                        ? 'bg-purple-50 text-purple-700'
+                        : 'hover:bg-gray-50 text-gray-700'
+                      }
+                    `}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-base">🤖</span>
+                      <span className="font-medium text-sm">Ask Bot</span>
+                      {chatMode === 'ask_bot' && (
+                        <svg className="w-4 h-4 ml-auto text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 ml-6">
+                      General conversation without document context
+                    </p>
+                  </button>
+
+                  <button
+                    onClick={() => handleModeChange('ask_document')}
+                    className={`
+                      w-full text-left px-3 py-2 rounded-md
+                      transition-colors
+                      ${chatMode === 'ask_document'
+                        ? 'bg-purple-50 text-purple-700'
+                        : 'hover:bg-gray-50 text-gray-700'
+                      }
+                    `}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-base">📄</span>
+                      <span className="font-medium text-sm">Ask Document</span>
+                      {chatMode === 'ask_document' && (
+                        <svg className="w-4 h-4 ml-auto text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 ml-6">
+                      Query with document context from your uploads
+                    </p>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Conversation Area */}
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 chat-scroll-container">
+
+          {/* Empty State */}
           {messages.length === 0 && (
-            <div className="h-full flex items-center justify-center text-gray-400 text-sm">
-              Start a conversation by sending a message.
+            <div className="h-full flex flex-col items-center justify-center text-gray-400 text-sm text-center px-4">
+              <p className="mb-2">Start a conversation by sending a message.</p>
+              <p className="text-xs text-gray-400">
+                Currently in <strong>{chatMode === 'ask_bot' ? 'Ask Bot' : 'Ask Document'}</strong> mode
+              </p>
             </div>
           )}
 
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
+          {/* Messages */}
+          {messages.map((msg, index) => {
+            const isLastMessage = index === messages.length - 1;
+            const showThinking =
+              isLastMessage &&
+              msg.role === 'assistant' &&
+              msg.content === "" &&
+              isThinking;
+
+            return (
               <div
-                className={`
-                py-2 px-3 text-sm wrap-break-word rounded-2xl
-                ${msg.role === 'user'
-                    ? 'bg-purple-500 text-white rounded-br-sm max-w-[80%]'
-                    : 'text-gray-900 w-full prose prose-sm max-w-none'}
-                `}
-              >{msg.role === 'user' ? (
-                msg.content
-              ) : (
-                <ReactMarkdown>
-                  {msg.content}
-                </ReactMarkdown>
-              )}
+                key={msg.id}
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`
+            py-2 px-3 text-sm wrap-break-word rounded-2xl
+            ${msg.role === 'user'
+                      ? 'bg-purple-500 text-white rounded-br-sm max-w-[80%]'
+                      : 'text-gray-900 w-full prose prose-sm max-w-none'}
+          `}
+                >
+                  {msg.role === 'user' ? (
+                    msg.content
+                  ) : showThinking ? (
+                    <div className="flex items-center gap-2 text-gray-800 animate-pulse">
+                      <LoaderCircle className="w-6 h-6 animate-spin text-purple-500" />
+                      <span className="text-s italic">
+                        Xeno is thinking...
+                      </span>
+                    </div>
+                  ) : (
+                    <ReactMarkdown>
+                      {msg.content}
+                    </ReactMarkdown>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           <div ref={messagesEndRef} />
         </div>
+
 
         {/* Input Area */}
         <form
@@ -228,14 +385,14 @@ export const ChatUI = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={isStreaming? "AI is responding..." : "Type your message..."}
+            placeholder={isStreaming ? "AI is responding..." : `Type your message (${getModeLabel(chatMode)})...`}
             disabled={isStreaming}
             className="
           flex-1 resize-none overflow-hidden
           rounded-xl border border-gray-300 
-          px-3 py-2 text-sm 
+          px-3 py-2 text-sm
           focus:outline-none focus:ring-2 focus:ring-purple-400
-          max-h-32  /* Limits how tall it can grow before scrolling */
+          max-h-32
         "
           />
           <button
@@ -261,7 +418,3 @@ export const ChatUI = () => {
     </div>
   );
 };
-
-
-
-

@@ -108,20 +108,80 @@ export const UploadSection = () => {
           formData.append('files', file); // 'files' must match the Python parameter name
         });
 
-        const response = await fetch("http://127.0.0.1:8000/upload", {
-          method: "POST",
-          body: formData,
-        });
+        // 🔧 FIX: Add timeout to detect backend connection issues
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000);
+        
+        let response;
+        try {
+          response = await fetch("http://127.0.0.1:8000/upload", {
+            method: "POST",
+            body: formData,
+            signal: controller.signal,
+          });
+        } catch (fetchError) {
+          clearTimeout(timeoutId);
+          
+          // 🔧 FIX: Handle network/connection errors specifically
+          if (fetchError instanceof Error) {
+            if (fetchError.name === 'AbortError') {
+              throw new Error('Upload timed out. The backend might be slow or unresponsive.');
+            }
+            // Network error - backend is likely down
+            throw new Error('Cannot connect to backend server. Please ensure the server is running at http://127.0.0.1:8000');
+          }
+          throw fetchError;
+        }
 
-        if (!response.ok) throw new Error('Backend upload failed');
+        clearTimeout(timeoutId);
+
+        // 🔧 FIX: Better error messages for different HTTP status codes
+        if (!response.ok) {
+          let errorMessage = `Backend error (${response.status})`;
+          
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.detail || errorData.message || errorMessage;
+          } catch {
+            // If response isn't JSON, use status text
+            errorMessage = `${errorMessage}: ${response.statusText}`;
+          }
+          
+          throw new Error(errorMessage);
+        }
+
         const result = await response.json();
-        console.log("Vault updated:", result);
+        console.log("✅ Vault updated:", result);
 
-        addFiles(sessionFiles);
-        setUploadError(null);
+        // 🔧 FIX: Check if any files failed on backend
+        const failedFiles = result.details?.filter((d: any) => d.status === 'failed');
+        if (failedFiles && failedFiles.length > 0) {
+          const failureMessages = failedFiles.map((f: any) => 
+            `${f.filename}: ${f.error}`
+          ).join('\n');
+          setUploadError(`Some files failed:\n${failureMessages}`);
+        }
+
+        // Only add successfully processed files to UI
+        const successfulFiles = result.details?.filter((d: any) => d.status === 'success') || [];
+        if (successfulFiles.length > 0) {
+          addFiles(sessionFiles.slice(0, successfulFiles.length));
+        }
+
+        // Clear error only if all files succeeded
+        if (!failedFiles || failedFiles.length === 0) {
+          setUploadError(null);
+        }
+
       } catch (err) {
-        console.error('Upload error:', err);
-        setUploadError('Failed to process files. Please try again.');
+        console.error('❌ Upload error:', err);
+        
+        // 🔧 FIX: Show user-friendly error messages
+        if (err instanceof Error) {
+          setUploadError(err.message);
+        } else {
+          setUploadError('An unexpected error occurred. Please try again.');
+        }
       } finally {
         setIsUploading(false);
       }
@@ -206,10 +266,13 @@ export const UploadSection = () => {
         </div>
 
         {uploadError && (
-          <div className="mt-3 px-4 py-2 max-w-md rounded-lg bg-red-100 text-red-700 text-sm whitespace-pre-line">
+          <div className="mt-3 px-4 py-2 max-w-md rounded-lg bg-red-100 border-2 border-red-300 text-red-700 text-sm whitespace-pre-line">
+            <p className="font-semibold mb-1">❌ Upload Failed</p>
             {uploadError}
           </div>
-        )}<button
+        )}
+
+        <button
           onClick={handleUploadClick}
           disabled={isUploading || files.length >= MAX_FILES}
           className={`
@@ -218,7 +281,7 @@ export const UploadSection = () => {
             flex items-center justify-center cursor-pointer 
             hover:border-purple-400 hover:bg-purple-500 
             active:scale-95 transition 
-            ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}
+            ${isUploading || files.length >= MAX_FILES ? 'opacity-50 cursor-not-allowed' : ''}
           `}
         >
           <p className="text-black font-normal whitespace-nowrap">

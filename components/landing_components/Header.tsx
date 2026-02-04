@@ -48,6 +48,16 @@ export const Header = ({ padding }: headerProps) => {
             className="px-6 py-2 border-2 border-gray-200 bg-gray-100 hover:bg-purple-400 transition text-black rounded font-semibold text-xl cursor-pointer">
             Documents
           </Link>
+          <Link
+            href="/vecdatabase"
+            className="px-6 py-2 border-2 border-gray-200 bg-gray-100 hover:bg-purple-400 transition text-black rounded font-semibold text-xl cursor-pointer">
+            VecDatabase
+          </Link>
+          <Link
+            href="/demo"
+            className="px-6 py-2 border-2 border-gray-200 bg-gray-100 hover:bg-purple-400 transition text-black rounded font-semibold text-xl cursor-pointer">
+            Demo
+          </Link>
         </nav>
       </div>
     </header>
