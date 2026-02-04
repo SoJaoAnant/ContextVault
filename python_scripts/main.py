@@ -70,10 +70,10 @@ doc_embeddings = GoogleGenerativeAIEmbeddings(
 # This means you lose all uploaded documents on restart
 # Better approach: Use a fixed collection name or make it configurable
 
-COLLECTION_NAME = os.getenv("CHROMA_COLLECTION_NAME", "context_vault_main")
+COLLECTION_NAME = os.getenv("CHROMA_COLLECTION_NAME", "context_vault_db")
 
 vector_db = Chroma(
-    collection_name=COLLECTION_NAME,
+    collection_name=COLLECTION_NAME, 
     embedding_function=doc_embeddings,
     persist_directory="./chroma_db",
 )
@@ -107,8 +107,8 @@ system_prompt = """ You are a helpful chatbot named Xeno, \
 
 
 # ==================== RAG Chain Implementation ====================
-def format_docs(docs):
-    """Format retrieved documents into a single context string."""
+def format_docs(docs): 
+    """Format retrieved documents into a single context string.""" 
     return "\n\n---\n\n".join([doc.page_content for doc in docs])
 
 # Create the RAG chain using LCEL (LangChain Expression Language)
@@ -296,10 +296,11 @@ async def get_stats():
         return {
             "collection_name": COLLECTION_NAME,
             "total_documents": doc_count,
-            "embedding_model": "text-embedding-004",
+            "embedding_model": "text-embedding-004", 
             "llm_model": "llama-4-maverick-17b"
         }
     except Exception as e:
+        print(f"Stats Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

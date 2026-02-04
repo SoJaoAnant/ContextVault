@@ -111,7 +111,7 @@ export const UploadSection = () => {
         // 🔧 FIX: Add timeout to detect backend connection issues
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 120000);
-        
+
         let response;
         try {
           response = await fetch("http://127.0.0.1:8000/upload", {
@@ -121,13 +121,11 @@ export const UploadSection = () => {
           });
         } catch (fetchError) {
           clearTimeout(timeoutId);
-          
-          // 🔧 FIX: Handle network/connection errors specifically
+
           if (fetchError instanceof Error) {
             if (fetchError.name === 'AbortError') {
               throw new Error('Upload timed out. The backend might be slow or unresponsive.');
             }
-            // Network error - backend is likely down
             throw new Error('Cannot connect to backend server. Please ensure the server is running at http://127.0.0.1:8000');
           }
           throw fetchError;
@@ -135,10 +133,9 @@ export const UploadSection = () => {
 
         clearTimeout(timeoutId);
 
-        // 🔧 FIX: Better error messages for different HTTP status codes
         if (!response.ok) {
           let errorMessage = `Backend error (${response.status})`;
-          
+
           try {
             const errorData = await response.json();
             errorMessage = errorData.detail || errorData.message || errorMessage;
@@ -146,7 +143,7 @@ export const UploadSection = () => {
             // If response isn't JSON, use status text
             errorMessage = `${errorMessage}: ${response.statusText}`;
           }
-          
+
           throw new Error(errorMessage);
         }
 
@@ -156,7 +153,7 @@ export const UploadSection = () => {
         // 🔧 FIX: Check if any files failed on backend
         const failedFiles = result.details?.filter((d: any) => d.status === 'failed');
         if (failedFiles && failedFiles.length > 0) {
-          const failureMessages = failedFiles.map((f: any) => 
+          const failureMessages = failedFiles.map((f: any) =>
             `${f.filename}: ${f.error}`
           ).join('\n');
           setUploadError(`Some files failed:\n${failureMessages}`);
@@ -175,7 +172,7 @@ export const UploadSection = () => {
 
       } catch (err) {
         console.error('❌ Upload error:', err);
-        
+
         // 🔧 FIX: Show user-friendly error messages
         if (err instanceof Error) {
           setUploadError(err.message);
@@ -295,6 +292,18 @@ export const UploadSection = () => {
             height={100}
           />
         </button>
+        <div className="mt-5 h-8 flex items-center justify-center">
+          <p
+            className={`
+              text-sm text-gray-600 transition-opacity
+              ${isUploading ? 'opacity-100' : 'opacity-0'}
+            `}
+          >
+            The file is being uploaded...
+            <br />
+            it may take up to a minute 😃
+          </p>
+        </div>
       </div>
 
       {/* Uploaded Documents Section */}

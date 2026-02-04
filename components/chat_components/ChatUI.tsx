@@ -13,6 +13,8 @@ type Message = {
 
 type ChatMode = 'ask_bot' | 'ask_document';
 
+const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://127.0.0.1:8000';
+
 export const ChatUI = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -90,8 +92,8 @@ export const ChatUI = () => {
 
     // Determine endpoint based on chat mode
     const endpoint = chatMode === 'ask_bot'
-      ? "http://127.0.0.1:8000/chat_nodoc"
-      : "http://127.0.0.1:8000/chat";
+      ? `${BACKEND_BASE_URL}/chat_nodoc`
+      : `${BACKEND_BASE_URL}/chat`;
 
     try {
       const controller = new AbortController();

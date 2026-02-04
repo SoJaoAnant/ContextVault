@@ -5,6 +5,7 @@ import { Hero } from '@/components/landing_components/Hero';
 import { RAGDiagram } from '@/components/landing_components/RAGDiagram';
 import { UploadSection } from '@/components/landing_components/UploadSection';
 import { UploadSectionTitle } from '@/components/landing_components/UploadSectionTitle';
+import { RAGDiagramTitle } from '@/components/landing_components/RAGDiagramTitle';
 import { Footer } from '@/components/landing_components/Footer';
 import { GotoChat } from '@/components/landing_components/goto_chat';
 import { UserForm } from '@/components/landing_components/user_form';
@@ -24,6 +25,8 @@ export default function Home() {
       <div className="w-full h-0.5 bg-gray-300 mx-auto max-w-350"></div>
       <UploadSection />
       <GotoChat />
+      <div className="w-full h-0.5 bg-gray-300 mx-auto max-w-350"></div>
+      <RAGDiagramTitle />
       <div className="w-full h-0.5 bg-gray-300 mx-auto max-w-350"></div>
       <RAGDiagram />
       <div className="w-full h-0.5 bg-gray-300 mx-auto max-w-350"></div>

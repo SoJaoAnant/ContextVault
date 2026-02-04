@@ -9,7 +9,7 @@ type VectorDBStatsResponse = {
   llm_model: string;
 };
 
-const BACKEND_BASE_URL = 'http://127.0.0.1:8000';
+const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://127.0.0.1:8000';
 
 export const VectorDBStats = () => {
   const [stats, setStats] = useState<VectorDBStatsResponse | null>(null);
@@ -22,7 +22,13 @@ export const VectorDBStats = () => {
       setLoading(true);
       setError(null);
 
-      const res = await fetch(`${BACKEND_BASE_URL}/stats`);
+      const res = await fetch(`${BACKEND_BASE_URL}/stats`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
+      });
       if (!res.ok) {
         throw new Error(`Failed to fetch stats: ${res.status}`);
       }
@@ -54,6 +60,10 @@ export const VectorDBStats = () => {
 
       const res = await fetch(`${BACKEND_BASE_URL}/clear`, {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
       });
 
       if (!res.ok) {
@@ -125,10 +135,9 @@ export const VectorDBStats = () => {
               className={`
                 inline-flex items-center px-3 py-1.5 text-s font-medium
                 rounded-md border
-                ${
-                  clearing
-                    ? 'bg-red-100 border-red-200 text-red-400'
-                    : 'bg-red-500 border-red-600 text-white hover:bg-red-600'
+                ${clearing
+                  ? 'bg-red-100 border-red-200 text-red-400'
+                  : 'bg-red-500 border-red-600 text-white hover:bg-red-600'
                 }
               `}
             >
