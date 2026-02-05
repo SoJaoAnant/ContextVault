@@ -1,4 +1,6 @@
 import { Header } from '@/components/landing_components/Header';
+import { VideoPlayer } from '@/components/demo_components/video_player';
+import { DemoDesc } from '@/components/demo_components/demo_desc';
 
 export default function DemoPage() {
     return (
@@ -10,12 +12,19 @@ export default function DemoPage() {
             {/* Header */}
             <Header />
 
-            <div className='flex justify-center items-center w-full h-full'>
-                <p>
-                    Coming Soon....
-                </p>
-            </div>
+            <div className="flex flex-1 gap-4 p-4 w-full">
 
+                {/* Texts */}
+                <div className="w-[36%]">
+                    <DemoDesc />
+                </div>
+
+                {/* Video player */}
+                <div className="w-[65%]">
+                    <VideoPlayer videoUrl='demo_video.mp4'/>
+                </div>
+
+            </div>
         </main>
     );
 }

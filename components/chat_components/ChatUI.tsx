@@ -175,8 +175,7 @@ export const ChatUI = () => {
           id: Date.now() + 1,
           role: "assistant",
           content:
-            "⚠️ Failed to connect to the LLM server.\n" +
-            "Either the backend is down or the model rage-quit. Try again later.",
+            '🚨 Backend is offline. Either wait for the server to start or check out the Demo page to see how it works!',
         };
 
         setMessages((prev) => [...prev, errorMessage]);
@@ -347,11 +346,12 @@ export const ChatUI = () => {
               >
                 <div
                   className={`
-            py-2 px-3 text-sm wrap-break-word rounded-2xl
-            ${msg.role === 'user'
+                    py-2 px-3 text-sm wrap-break-word rounded-2xl
+                    ${msg.role === 'user'
                       ? 'bg-purple-500 text-white rounded-br-sm max-w-[80%]'
-                      : 'text-gray-900 w-full prose prose-sm max-w-none'}
-          `}
+                      : 'bg-gray-50 text-gray-900 rounded-bl-sm border border-gray-200 max-w-full'
+                    }
+                  `}
                 >
                   {msg.role === 'user' ? (
                     msg.content
@@ -363,9 +363,35 @@ export const ChatUI = () => {
                       </span>
                     </div>
                   ) : (
-                    <ReactMarkdown>
-                      {msg.content}
-                    </ReactMarkdown>
+                    <div className="prose prose-sm max-w-none text-gray-900">
+                      <ReactMarkdown
+                        components={{
+                          h1: ({ node, ...props }) => (
+                            <h1 className="text-lg font-bold text-gray-900 mb-2" {...props} />
+                          ),
+                          h2: ({ node, ...props }) => (
+                            <h2 className="text-base font-semibold text-gray-900 mt-3 mb-1" {...props} />
+                          ),
+                          h3: ({ node, ...props }) => (
+                            <h3 className="text-sm font-semibold text-gray-900 mt-2 mb-1" {...props} />
+                          ),
+                          strong: ({ node, ...props }) => (
+                            <strong className="font-semibold text-gray-900" {...props} />
+                          ),
+                          li: ({ node, ...props }) => (
+                            <li className="ml-4 list-disc" {...props} />
+                          ),
+                          code: ({ node, ...props }) => (
+                            <code className="px-1 py-0.5 rounded bg-gray-100 text-gray-800 text-xs font-mono" {...props} />
+                          ),
+                          pre: ({ node, ...props }) => (
+                            <pre className="p-3 bg-gray-900 text-gray-100 rounded-lg text-xs overflow-x-auto" {...props} />
+                          ),
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
                   )}
                 </div>
               </div>

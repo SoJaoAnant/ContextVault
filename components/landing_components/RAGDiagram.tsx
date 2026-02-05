@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import { Break } from '../ui/break';
 
 
 export const RAGDiagram = () => {
@@ -18,8 +19,11 @@ export const RAGDiagram = () => {
         <div className="
         flex flex-col 
         bg-gray-200 w-[75%]
-        border-4 border-gray-300
-        rounded-2xl">
+        border-4 border-purple-400 border-dashed
+        rounded-2xl
+        
+        transition-transform duration-300 ease-out
+        hover:scale-[1.03]">
           <h3 className="text-2xl font-bold mx-10 mt-10">
             Document Uploading
           </h3>
@@ -30,7 +34,7 @@ export const RAGDiagram = () => {
         </div>
 
         {/* Image */}
-        <div className="relative  w-[25%] h-full overflow-hidden">
+        <div className="relative  w-[25%] h-full overflow-hidden ml-5">
           <Image
             src="/file_upload.gif"
             alt="file_upload"
@@ -40,6 +44,8 @@ export const RAGDiagram = () => {
           />
         </div>
       </div>
+
+      <Break />
 
       {/* Chunking */}
       <div className="flex w-full h-60">
@@ -59,8 +65,11 @@ export const RAGDiagram = () => {
         <div className="
         flex flex-col 
         bg-gray-200 w-[75%]
-        border-4 border-gray-300
-        rounded-2xl">
+        border-4 border-purple-400 border-dashed
+        rounded-2xl
+        
+        transition-transform duration-300 ease-out
+        hover:scale-[1.03]">
           <h3 className="text-2xl font-bold mx-10 mt-10">
             Chunking
           </h3>
@@ -70,6 +79,8 @@ export const RAGDiagram = () => {
         </div>
       </div>
 
+      <Break />
+
       {/* Embedding */}
       <div className="flex w-full h-60">
 
@@ -77,8 +88,11 @@ export const RAGDiagram = () => {
         <div className="
         flex flex-col 
         bg-gray-200 w-[75%]
-        border-4 border-gray-300
-        rounded-2xl">
+        border-4 border-purple-400 border-dashed
+        rounded-2xl
+        
+        transition-transform duration-300 ease-out
+        hover:scale-[1.03]">
           <h3 className="text-2xl font-bold mx-10 mt-10">
             Embedding
           </h3>
@@ -88,7 +102,7 @@ export const RAGDiagram = () => {
         </div>
 
         {/* Image */}
-        <div className="relative  w-[25%] h-full overflow-hidden">
+        <div className="relative  w-[25%] h-full overflow-hidden ml-5">
           <Image
             src="/embedding.gif"
             alt="embedding"
@@ -98,6 +112,8 @@ export const RAGDiagram = () => {
           />
         </div>
       </div>
+
+      <Break />
 
       {/* Storing */}
       <div className="flex w-full h-60">
@@ -117,8 +133,11 @@ export const RAGDiagram = () => {
         <div className="
         flex flex-col 
         bg-gray-200 w-[75%]
-        border-4 border-gray-300
-        rounded-2xl">
+        border-4 border-purple-400 border-dashed
+        rounded-2xl
+        
+        transition-transform duration-300 ease-out
+        hover:scale-[1.03]">
           <h3 className="text-2xl font-bold mx-10 mt-10">
             Storing
           </h3>
@@ -128,6 +147,8 @@ export const RAGDiagram = () => {
         </div>
       </div>
 
+      <Break />
+
       {/* Querying */}
       <div className="flex w-full h-60">
 
@@ -135,8 +156,11 @@ export const RAGDiagram = () => {
         <div className="
         flex flex-col 
         bg-gray-200 w-[75%]
-        border-4 border-gray-300
-        rounded-2xl">
+        border-4 border-purple-400 border-dashed
+        rounded-2xl
+        
+        transition-transform duration-300 ease-out
+        hover:scale-[1.03]">
           <h3 className="text-2xl font-bold mx-10 mt-10">
             Querying
           </h3>
@@ -157,6 +181,8 @@ export const RAGDiagram = () => {
         </div>
       </div>
 
+      <Break />
+
       {/* Retrieving similar chunks */}
       <div className="flex w-full h-60">
 
@@ -175,8 +201,11 @@ export const RAGDiagram = () => {
         <div className="
         flex flex-col 
         bg-gray-200 w-[75%]
-        border-4 border-gray-300
-        rounded-2xl">
+        border-4 border-purple-400 border-dashed
+        rounded-2xl
+        
+        transition-transform duration-300 ease-out
+        hover:scale-[1.03]">
           <h3 className="text-2xl font-bold mx-10 mt-10">
             Retrieving similar chunks
           </h3>
@@ -186,6 +215,8 @@ export const RAGDiagram = () => {
         </div>
       </div>
 
+      <Break />
+
       {/* Prompt modification */}
       <div className="flex w-full h-60">
 
@@ -193,21 +224,24 @@ export const RAGDiagram = () => {
         <div className="
         flex flex-col 
         bg-gray-200 w-[75%]
-        border-4 border-gray-300
-        rounded-2xl">
+        border-4 border-purple-400 border-dashed
+        rounded-2xl
+        
+        transition-transform duration-300 ease-out
+        hover:scale-[1.03]">
           <h3 className="text-2xl font-bold mx-10 mt-10">
             Prompt modification
           </h3>
           <p className="text-xl font-light mx-10 my-5">
-            Now with the original query and similar chunks of information retrieved, an advanced prompt it made which consists of
-            Instructions
-            Context (retrieved chunks)
-            Question (original query)
+            Now with the original query and similar chunks of information retrieved, an advanced prompt it made which consists of :
+            The Instructions,
+            The Context (retrieved chunks) and
+            The Question (original query)
           </p>
         </div>
 
         {/* Image */}
-        <div className="relative  w-[25%] h-full overflow-hidden">
+        <div className="relative  w-[25%] h-full overflow-hidden ml-5">
           <Image
             src="/prompt modification.gif"
             alt="prompt modification"
@@ -217,6 +251,8 @@ export const RAGDiagram = () => {
           />
         </div>
       </div>
+
+      <Break />
 
       {/* Response Generation */}
       <div className="flex w-full h-60">
@@ -236,8 +272,11 @@ export const RAGDiagram = () => {
         <div className="
         flex flex-col 
         bg-gray-200 w-[75%]
-        border-4 border-gray-300
-        rounded-2xl">
+        border-4 border-purple-400 border-dashed
+        rounded-2xl
+        
+        transition-transform duration-300 ease-out
+        hover:scale-[1.03]">
           <h3 className="text-2xl font-bold mx-10 mt-10">
             Response Generation
           </h3>

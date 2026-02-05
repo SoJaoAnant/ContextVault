@@ -11,6 +11,8 @@ import {
   type SupportedFileType,
 } from '@/contexts/FileContext';
 
+const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://127.0.0.1:8000';
+
 export const UploadSection = () => {
   const { files, addFiles, removeFile } = useFileContext();
   const [isDragging, setIsDragging] = useState(false);
@@ -108,13 +110,12 @@ export const UploadSection = () => {
           formData.append('files', file); // 'files' must match the Python parameter name
         });
 
-        // 🔧 FIX: Add timeout to detect backend connection issues
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 120000);
 
         let response;
         try {
-          response = await fetch("http://127.0.0.1:8000/upload", {
+          response = await fetch(`${BACKEND_BASE_URL}/upload`, {
             method: "POST",
             body: formData,
             signal: controller.signal,
@@ -126,7 +127,7 @@ export const UploadSection = () => {
             if (fetchError.name === 'AbortError') {
               throw new Error('Upload timed out. The backend might be slow or unresponsive.');
             }
-            throw new Error('Cannot connect to backend server. Please ensure the server is running at http://127.0.0.1:8000');
+            throw new Error('🚨 Backend is offline. Either wait for the server to start or check out the Demo page to see how it works!');
           }
           throw fetchError;
         }

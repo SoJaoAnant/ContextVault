@@ -13,15 +13,11 @@ import Link from 'next/link';
  * TODO: Add proper navigation links and routing
  */
 
-type headerProps = {
-  padding?: "string";
-}
-
-export const Header = ({ padding }: headerProps) => {
+export const Header = () => {
   return (
     <header className="w-full py-6 px-8 border-b bg-gray-50 border-gray-400 ">
 
-      <div className={`${padding} max-w-350 mx-auto flex justify-between items-center`}>
+      <div className={`max-w-350 mx-auto flex justify-between items-center`}>
         <Link href="/" className="flex items-center gap-3 cursor-pointer">
           <Image
             src="/logo.png"
@@ -51,7 +47,7 @@ export const Header = ({ padding }: headerProps) => {
           <Link
             href="/vecdatabase"
             className="px-6 py-2 border-2 border-gray-200 bg-gray-100 hover:bg-purple-400 transition text-black rounded font-semibold text-xl cursor-pointer">
-            VecDatabase
+            VecDataBase
           </Link>
           <Link
             href="/demo"

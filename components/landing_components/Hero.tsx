@@ -28,7 +28,16 @@ export const Hero = () => {
         </p>
 
         <button
-          className='px-9.5 py-5 border-4 border-purple-300 rounded-xl bg-purple-400 hover:border-purple-400 hover:bg-purple-500 transition font-semibold text-2xl'
+          className='
+          px-9.5 py-5 
+          border-4 border-purple-300 
+          font-semibold text-2xl
+          rounded-xl 
+          bg-purple-400 
+          hover:border-purple-400 
+          hover:bg-purple-500 
+          hover:scale-[1.03]
+          transition '
           onClick={() => scrollToHeight(740)}>
           Start Now
         </button>

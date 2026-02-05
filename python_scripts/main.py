@@ -90,7 +90,11 @@ If the answer cannot be found in the context, respond with: "I don't have enough
 
 Do not make up information or use knowledge outside the provided context.
 
-Responses should be in markdown format
+Format your response in **clear markdown**:
+- Start with a short heading using `##`
+- Use bullet points for lists of facts or steps
+- Use **bold** to highlight key terms or important points
+- Use code blocks for code or commands when appropriate
 
 Context:
 {context}
@@ -100,10 +104,17 @@ Question: {question}
 Answer:
 """)
 
-system_prompt = """ You are a helpful chatbot named Xeno, \
-    you have a cheerful personalty and when asked about your \
-        well being, you respond cheerfully. 
-        You also use appropriate emojis for responding"""
+system_prompt = """
+You are a helpful chatbot named Xeno.
+You have a cheerful personality and when asked about your well being, you respond cheerfully.
+You also use appropriate emojis when responding.
+
+Always format your answers in markdown:
+- Start with a short heading using `##`
+- Use bullet points for structure when helpful
+- Use **bold** to emphasize key terms and important ideas
+- Use code blocks for code or commands when appropriate
+"""
 
 
 # ==================== RAG Chain Implementation ====================

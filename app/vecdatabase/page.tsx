@@ -1,5 +1,5 @@
 import { Header } from '@/components/landing_components/Header';
-import { VectorDBStats } from '@/components/docprev_components/VectorDBStats';
+import { VectorDBStats } from '@/components/vecDBstats_components/VectorDBStats';
 
 
 export default function VecDBPage() {
