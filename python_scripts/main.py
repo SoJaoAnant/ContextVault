@@ -58,6 +58,7 @@ text_splitter = RecursiveCharacterTextSplitter(
 # Google embeddings have different task types that should be used appropriately
 doc_embeddings = GoogleGenerativeAIEmbeddings(
     model="models/text-embedding-004",
+    version="v1",
     task_type="retrieval_document"
 )
 
