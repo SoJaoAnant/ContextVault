@@ -4,6 +4,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -54,9 +55,9 @@ text_splitter = RecursiveCharacterTextSplitter(
 )
 
 # ==================== Embeddings ====================
-doc_embeddings = GoogleGenerativeAIEmbeddings(
-    model="models/gemini-embedding-001",
-    google_api_key=os.getenv("GOOGLE_API_KEY") 
+
+doc_embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2"
 )
 
 COLLECTION_NAME = os.getenv("CHROMA_COLLECTION_NAME", "context_vault_db")

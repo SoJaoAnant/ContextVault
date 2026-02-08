@@ -111,7 +111,6 @@ export const UploadSection = () => {
         });
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 120000);
 
         let response;
         try {
@@ -121,18 +120,11 @@ export const UploadSection = () => {
             signal: controller.signal,
           });
         } catch (fetchError) {
-          clearTimeout(timeoutId);
-
           if (fetchError instanceof Error) {
-            if (fetchError.name === 'AbortError') {
-              throw new Error('Upload timed out. The backend might be slow or unresponsive.');
-            }
             throw new Error('🚨 Backend is offline. Either wait for the server to start or check out the Demo page to see how it works!');
           }
           throw fetchError;
         }
-
-        clearTimeout(timeoutId);
 
         if (!response.ok) {
           let errorMessage = `Backend error (${response.status})`;
