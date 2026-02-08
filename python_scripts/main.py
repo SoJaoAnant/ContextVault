@@ -55,7 +55,8 @@ text_splitter = RecursiveCharacterTextSplitter(
 
 # ==================== Embeddings ====================
 doc_embeddings = GoogleGenerativeAIEmbeddings(
-    model="models/embedding-001",
+    model="models/gemini-embedding-001",
+    google_api_key=os.getenv("GOOGLE_API_KEY") 
 )
 
 COLLECTION_NAME = os.getenv("CHROMA_COLLECTION_NAME", "context_vault_db")
@@ -68,6 +69,7 @@ vector_db = Chroma(
 
 print(f"✅ Vector DB initialized: {COLLECTION_NAME}")
 print(f"📊 Current document count: {vector_db._collection.count()}")
+
 
 # ==================== RAG Prompt Template ====================
 RAG_prompt_template = ChatPromptTemplate.from_template("""
@@ -294,7 +296,7 @@ async def get_stats():
         return {
             "collection_name": COLLECTION_NAME,
             "total_documents": doc_count,
-            "embedding_model": "text-embedding-004", 
+            "embedding_model": "gemini-embedding-001", 
             "llm_model": "llama-4-maverick-17b"
         }
     except Exception as e:
