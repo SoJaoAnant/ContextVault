@@ -55,7 +55,7 @@ text_splitter = RecursiveCharacterTextSplitter(
 
 # ==================== Embeddings ====================
 doc_embeddings = GoogleGenerativeAIEmbeddings(
-    model="models/text-embedding-004",
+    model="models/embedding-001",
 )
 
 COLLECTION_NAME = os.getenv("CHROMA_COLLECTION_NAME", "context_vault_db")
@@ -110,7 +110,6 @@ def format_docs(docs):
     """Format retrieved documents into a single context string.""" 
     return "\n\n---\n\n".join([doc.page_content for doc in docs])
 
-# Create the RAG chain using LCEL (LangChain Expression Language)
 rag_chain = (
     {
         "context": lambda x: format_docs(
@@ -306,7 +305,7 @@ async def get_stats():
 @app.delete("/clear")
 async def clear_database():
     """Clear all documents from the vector database."""
-    global vector_db  # Must declare BEFORE using the variable
+    global vector_db  
     
     try:
         # Delete and recreate the collection
