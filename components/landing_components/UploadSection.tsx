@@ -31,6 +31,7 @@ export const UploadSection = () => {
     return extension;
   };
 
+
   const validateFile = (file: File): { valid: boolean; error?: string } => {
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
 
@@ -121,7 +122,7 @@ export const UploadSection = () => {
           });
         } catch (fetchError) {
           if (fetchError instanceof Error) {
-            throw new Error('🚨 Backend is offline. Either wait for the server to start or check out the Demo page to see how it works!');
+            throw new Error('⚠️ Backend is offline. Either wait for the server to start or check out the Demo page to see how it works!');
           }
           throw fetchError;
         }
@@ -143,7 +144,6 @@ export const UploadSection = () => {
         const result = await response.json();
         console.log("✅ Vault updated:", result);
 
-        // 🔧 FIX: Check if any files failed on backend
         const failedFiles = result.details?.filter((d: any) => d.status === 'failed');
         if (failedFiles && failedFiles.length > 0) {
           const failureMessages = failedFiles.map((f: any) =>
@@ -164,9 +164,8 @@ export const UploadSection = () => {
         }
 
       } catch (err) {
-        console.error('❌ Upload error:', err);
+        console.error('⚠ Upload error:', err);
 
-        // 🔧 FIX: Show user-friendly error messages
         if (err instanceof Error) {
           setUploadError(err.message);
         } else {
@@ -252,12 +251,12 @@ export const UploadSection = () => {
         <div className="text-center my-10 text-gray-700">
           <p className="text-lg font-medium">Drag or Select documents to upload</p>
           <p className="text-xs text-gray-500">Supported formats: (.pdf, .md, .txt, .csv)</p>
-          <p className="text-xs text-gray-500">Max size: 20MB · Max {MAX_FILES} files</p>
+          <p className="text-xs text-gray-500">Max size: 20MB ‼· Max {MAX_FILES} files</p>
         </div>
 
         {uploadError && (
           <div className="mt-3 px-4 py-2 max-w-md rounded-lg bg-red-100 border-2 border-red-300 text-red-700 text-sm whitespace-pre-line">
-            <p className="font-semibold mb-1">❌ Upload Failed</p>
+            <p className="font-semibold mb-1">⚠️ Upload Failed</p>
             {uploadError}
           </div>
         )}
@@ -294,7 +293,7 @@ export const UploadSection = () => {
           >
             The file is being uploaded...
             <br />
-            it may take up to a minute 😃
+            it may take up to a minute ⏱️ 
           </p>
         </div>
       </div>

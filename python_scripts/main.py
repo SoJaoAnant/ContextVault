@@ -4,7 +4,6 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
-from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -14,6 +13,7 @@ from langchain_chroma import Chroma
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from typing import List
+import asyncio
 import PyPDF2
 import time
 import io
@@ -55,9 +55,9 @@ text_splitter = RecursiveCharacterTextSplitter(
 )
 
 # ==================== Embeddings ====================
-
-doc_embeddings = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2"
+doc_embeddings = GoogleGenerativeAIEmbeddings(
+    model="models/gemini-embedding-001",
+    google_api_key=os.getenv("GOOGLE_API_KEY")
 )
 
 COLLECTION_NAME = os.getenv("CHROMA_COLLECTION_NAME", "context_vault_db")
@@ -125,9 +125,45 @@ rag_chain = (
     | StrOutputParser()
 )
 
+# ==================== Rate-Limited Batch Processing ====================
+async def add_documents_with_rate_limit(chunks: List[Document], batch_size: int = 90):
+    total_chunks = len(chunks)
+    
+    if total_chunks == 0:
+        return
+    
+    print(f"📦 Processing {total_chunks} chunks in batches of {batch_size}...")
+    
+    for i in range(0, total_chunks, batch_size):
+        batch = chunks[i:i + batch_size]
+        batch_num = (i // batch_size) + 1
+        total_batches = (total_chunks + batch_size - 1) // batch_size
+        
+        print(f"⏳ Processing batch {batch_num}/{total_batches} ({len(batch)} chunks)...")
+        
+        try:
+            vector_db.add_documents(batch)
+            print(f"✅ Batch {batch_num}/{total_batches} completed")
+            
+            if i + batch_size < total_chunks:
+                wait_time = 60
+                print(f"⏸️  Waiting {wait_time} seconds to respect rate limits...")
+                await asyncio.sleep(wait_time)
+                
+        except Exception as e:
+            if "RESOURCE_EXHAUSTED" in str(e) or "429" in str(e):
+                print(f"⚠️  Rate limit hit! Waiting 65 seconds before retry...")
+                await asyncio.sleep(65)
+                vector_db.add_documents(batch)
+                print(f"✅ Batch {batch_num}/{total_batches} completed (after retry)")
+            else:
+                raise e
+    
+    print(f"🎉 All {total_chunks} chunks processed successfully!")
+    
+
 # ==================== File Processing ====================
 async def process_file(file: UploadFile):
-    """Process uploaded file and add to vector database."""
     try:
         content = await file.read()
         text = ""
@@ -135,7 +171,6 @@ async def process_file(file: UploadFile):
         if not content:
             raise ValueError("Uploaded file is empty")
 
-        # Handle PDF files
         if file.filename.lower().endswith(".pdf"):
             try:
                 pdf_reader = PyPDF2.PdfReader(io.BytesIO(content))
@@ -146,7 +181,6 @@ async def process_file(file: UploadFile):
             except Exception as pdf_err:
                 raise RuntimeError(f"Failed to read PDF: {str(pdf_err)}") from pdf_err
 
-        # Handle text files
         elif file.filename.lower().endswith((".txt", ".md", ".csv")):
             try:
                 text = content.decode("utf-8")
@@ -159,7 +193,6 @@ async def process_file(file: UploadFile):
         if not text.strip():
             raise ValueError("No extractable text found in file")
 
-        # Create document with metadata
         doc = Document(
             page_content=text,
             metadata={
@@ -169,14 +202,14 @@ async def process_file(file: UploadFile):
             }
         )
 
-        # Split into chunks
         chunks = text_splitter.split_documents([doc])
 
         if not chunks:
             raise RuntimeError("Document chunking failed - no chunks created")
 
-        # Add to vector database
-        vector_db.add_documents(chunks)
+
+
+        await add_documents_with_rate_limit(chunks, batch_size=90)
         
         print(f"✅ Successfully processed: {file.filename} ({len(chunks)} chunks)")
 
@@ -193,6 +226,7 @@ async def process_file(file: UploadFile):
             status_code=400,
             detail=f"File processing failed: {str(e)}"
         )
+        
 
 # ==================== Endpoints ====================
 
@@ -209,12 +243,11 @@ async def upload_documents(files: List[UploadFile] = File(...)):
     
     for file in files:
         try:
-            await file.seek(0)  # Reset file pointer
+            await file.seek(0)  
             result = await process_file(file)
             uploaded_details.append(result)
             
         except HTTPException as he:
-            # If one file fails, log it but continue with others
             uploaded_details.append({
                 "status": "failed",
                 "filename": file.filename,
@@ -340,7 +373,7 @@ async def startup_event():
     print(f"📦 Collection: {COLLECTION_NAME}")
     print(f"📊 Documents: {vector_db._collection.count()}")
     print(f"🤖 LLM: llama-4-maverick-17b")
-    print(f"🔍 Embeddings: text-embedding-004")
+    print(f"🔍 Embeddings: gemini-embedding-001")
     print("="*50 + "\n")
 
 
