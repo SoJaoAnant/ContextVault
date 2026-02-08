@@ -1,6 +1,5 @@
 import { Header } from '@/components/landing_components/Header';
 import { DocumentPrev } from '@/components/chat_components/DocumentPrev';
-import { VectorDBStats } from '@/components/docprev_components/VectorDBStats';
 
 export default function DocPage() {
   return (
