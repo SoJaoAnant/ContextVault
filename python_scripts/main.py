@@ -54,22 +54,9 @@ text_splitter = RecursiveCharacterTextSplitter(
 )
 
 # ==================== Embeddings ====================
-# ISSUE #1: You're using doc_embeddings for both storing and querying
-# Google embeddings have different task types that should be used appropriately
 doc_embeddings = GoogleGenerativeAIEmbeddings(
     model="models/text-embedding-004",
-    version="v1",
-    task_type="retrieval_document"
 )
-
-# You don't need separate query_embeddings with Chroma - 
-# it uses the same embedding function for both
-# Just use doc_embeddings for consistency
-
-# ==================== Vector Database ====================
-# ISSUE #2: Creating a new collection every time the server restarts
-# This means you lose all uploaded documents on restart
-# Better approach: Use a fixed collection name or make it configurable
 
 COLLECTION_NAME = os.getenv("CHROMA_COLLECTION_NAME", "context_vault_db")
 
@@ -77,7 +64,7 @@ vector_db = Chroma(
     collection_name=COLLECTION_NAME, 
     embedding_function=doc_embeddings,
     persist_directory="./chroma_db",
-)
+) 
 
 print(f"✅ Vector DB initialized: {COLLECTION_NAME}")
 print(f"📊 Current document count: {vector_db._collection.count()}")
