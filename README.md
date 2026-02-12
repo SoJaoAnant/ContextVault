@@ -26,5 +26,5 @@ A Retrieval-Augmented Generation (RAG) system that allows users to upload docume
 ### 🎨 Frontend
 - Next.js, Tailwind and JavaScript
 
-### API endpoints
+### 🔌 API endpoints
 - Backend and Frontend connected thru FastAPI endpoints
