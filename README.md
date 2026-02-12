@@ -4,7 +4,7 @@
 
 A Retrieval-Augmented Generation (RAG) system that allows users to upload documents, store them in a vector database, and query them using an LLM.
 
-<br/>
+---
 ## 🚀 Features
 
 - 📄 Upload PDF / DOCX / txt files
@@ -16,6 +16,7 @@ A Retrieval-Augmented Generation (RAG) system that allows users to upload docume
     - Document-aware RAG querying
 - 📃 Document preview section
 
+---
 ## 🛠️ Tech Stack
 
 ### ⚙ Backend
