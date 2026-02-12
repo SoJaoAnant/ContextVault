@@ -1,6 +1,6 @@
 #writeys 
 
-![[Pasted image 20260211100046.png]]
+![Demo Screenshot](./public/ContextVaultBanner.png)
 
 ## 📚 RAG Based AI Document Assistant
 
