@@ -1,5 +1,3 @@
-#writeys 
-
 ![Demo Screenshot](./public/ContextVaultBanner.png)
 
 ## 📚 RAG Based AI Document Assistant
